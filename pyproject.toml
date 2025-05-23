@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "imagenet-cb"
+version = "0.1.0"
+description = "Crunchbase data analysis for ImageNet-2012 companies"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "imagenet_cb", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "^2.2.0"
+pyarrow = "^15.0.0"
+requests = "^2.31.0"
+python-dotenv = "^1.0.0"
+tqdm = "^4.66.1"
+click = "^8.1.7"
+kaggle = "^1.5.16"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+black = "^24.1.1"
+isort = "^5.13.2"
+flake8 = "^7.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3 
