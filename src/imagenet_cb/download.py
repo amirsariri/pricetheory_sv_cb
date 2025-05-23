@@ -25,7 +25,7 @@ def download_from_kaggle() -> None:
     # Download the dataset
     click.echo("Downloading Crunchbase data from Kaggle...")
     api.dataset_download_files(
-        "crunchbase/crunchbase-2024-01-09",
+        "chhinna/crunchbase-data",
         path=str(RAW_DATA_DIR),
         unzip=True
     )
