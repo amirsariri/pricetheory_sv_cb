@@ -50,4 +50,7 @@ ehthumbs.db
 Thumbs.db
 
 # Poetry
-poetry.lock 
+poetry.lock
+
+# Added from the code block
+pricetheoryofsv.code-workspace 
