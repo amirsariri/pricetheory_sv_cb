@@ -1,8 +1,9 @@
 import pandas as pd
 from pathlib import Path
+from datetime import datetime, timedelta
 
 # Toggle for sampling (set to True to only output first 100 rows)
-SAMPLE = True  # Set to False for full output
+SAMPLE = False  # Set to False for full output
 
 # Get the project root (the directory containing this script's parent directories)
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -15,7 +16,7 @@ ORG_FILE = DATA_DIR / "organizations.csv"
 OUTPUT_DIR = PROJECT_ROOT / "data/processed"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # Update output filename to reflect new period and sample
-output_name = "orgs_2012_2025_sample.csv" if SAMPLE else "orgs_2012_2025.csv"
+output_name = "orgs_2012_2019_survived_sample.csv" if SAMPLE else "orgs_2012_2019_survived.csv"
 OUTPUT_FILE = OUTPUT_DIR / output_name
 
 # Columns to keep
@@ -32,14 +33,62 @@ COLUMNS = [
     "category_list"
 ]
 
+def survived_at_least_12_months(row):
+    """Check if company survived at least 12 months."""
+    if pd.isna(row['founded_on']):
+        return False
+    
+    # If company is still active (no closed_on date), consider it survived
+    if pd.isna(row['closed_on']):
+        return True
+    
+    # Calculate survival time using year difference to avoid overflow
+    founded_year = row['founded_on'].year
+    closed_year = row['closed_on'].year
+    
+    # If more than 1 year difference, definitely survived
+    if closed_year - founded_year > 1:
+        return True
+    
+    # If same year, check if at least 12 months passed
+    if closed_year == founded_year:
+        return False  # Same year means less than 12 months
+    
+    # If 1 year difference, check the months
+    if closed_year - founded_year == 1:
+        founded_month = row['founded_on'].month
+        closed_month = row['closed_on'].month
+        
+        # If closed month is after founded month, survived at least 12 months
+        if closed_month > founded_month:
+            return True
+        elif closed_month == founded_month:
+            # Check days
+            return row['closed_on'].day >= row['founded_on'].day
+        
+    return False
+
 # Read in chunks to handle large file
 chunks = []
 for chunk in pd.read_csv(ORG_FILE, usecols=lambda c: c in COLUMNS, chunksize=100_000, low_memory=False):
-    # Convert founded_on to datetime
+    # Convert date columns to datetime
     chunk["founded_on"] = pd.to_datetime(chunk["founded_on"], errors="coerce")
-    # Filter by founded_on year (2012-2025)
-    mask = chunk["founded_on"].dt.year.between(2012, 2025, inclusive="both")
-    filtered = chunk.loc[mask, COLUMNS]
+    chunk["closed_on"] = pd.to_datetime(chunk["closed_on"], errors="coerce")
+    
+    # Apply filters:
+    # 1. Founded between 2012-2019
+    founded_mask = chunk["founded_on"].dt.year.between(2012, 2019, inclusive="both")
+    
+    # 2. Has homepage URL (not null and not empty)
+    homepage_mask = chunk["homepage_url"].notna() & (chunk["homepage_url"] != "")
+    
+    # 3. Survived at least 12 months
+    survival_mask = chunk.apply(survived_at_least_12_months, axis=1)
+    
+    # Combine all filters
+    combined_mask = founded_mask & homepage_mask & survival_mask
+    
+    filtered = chunk.loc[combined_mask, COLUMNS]
     chunks.append(filtered)
 
 # Concatenate all filtered chunks
@@ -52,4 +101,13 @@ if SAMPLE:
 # Save to CSV
 result.to_csv(OUTPUT_FILE, index=False)
 
-print(f"Filtered organizations saved to {OUTPUT_FILE}") 
+print(f"Filtered organizations saved to {OUTPUT_FILE}")
+print(f"Total organizations found: {len(result)}")
+
+# Print summary statistics
+if len(result) > 0:
+    print(f"\nSummary:")
+    print(f"Founded years range: {result['founded_on'].dt.year.min()} - {result['founded_on'].dt.year.max()}")
+    print(f"Average founding year: {result['founded_on'].dt.year.mean():.1f}")
+    print(f"Companies with funding data: {result['total_funding_usd'].notna().sum()}")
+    print(f"Companies still active: {(result['closed_on'].isna()).sum()}") 
