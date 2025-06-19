@@ -19,20 +19,6 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 output_name = "orgs_2012_2019_survived_sample.csv" if SAMPLE else "orgs_2012_2019_survived.csv"
 OUTPUT_FILE = OUTPUT_DIR / output_name
 
-# Columns to keep
-COLUMNS = [
-    "uuid",
-    "name",
-    "founded_on",
-    "closed_on",
-    "total_funding_usd",
-    "employee_count",
-    "homepage_url",
-    "status",
-    "short_description",
-    "category_list"
-]
-
 def survived_at_least_12_months(row):
     """Check if company survived at least 12 months."""
     if pd.isna(row['founded_on']):
@@ -70,7 +56,7 @@ def survived_at_least_12_months(row):
 
 # Read in chunks to handle large file
 chunks = []
-for chunk in pd.read_csv(ORG_FILE, usecols=lambda c: c in COLUMNS, chunksize=100_000, low_memory=False):
+for chunk in pd.read_csv(ORG_FILE, chunksize=100_000, low_memory=False):
     # Convert date columns to datetime
     chunk["founded_on"] = pd.to_datetime(chunk["founded_on"], errors="coerce")
     chunk["closed_on"] = pd.to_datetime(chunk["closed_on"], errors="coerce")
@@ -84,11 +70,17 @@ for chunk in pd.read_csv(ORG_FILE, usecols=lambda c: c in COLUMNS, chunksize=100
     
     # 3. Survived at least 12 months
     survival_mask = chunk.apply(survived_at_least_12_months, axis=1)
+
+    # 4. US-based startups
+    us_mask = chunk["country_code"] == "USA"
+
+    # 6. Primary role is 'company'
+    role_mask = chunk["primary_role"] == "company"
     
-    # Combine all filters
-    combined_mask = founded_mask & homepage_mask & survival_mask
+    # Combine all filters (removed funding_mask)
+    combined_mask = founded_mask & homepage_mask & survival_mask & us_mask & role_mask
     
-    filtered = chunk.loc[combined_mask, COLUMNS]
+    filtered = chunk.loc[combined_mask]
     chunks.append(filtered)
 
 # Concatenate all filtered chunks
@@ -111,3 +103,24 @@ if len(result) > 0:
     print(f"Average founding year: {result['founded_on'].dt.year.mean():.1f}")
     print(f"Companies with funding data: {result['total_funding_usd'].notna().sum()}")
     print(f"Companies still active: {(result['closed_on'].isna()).sum()}") 
+    
+    # Additional summary statistics
+    total = len(result)
+    closed = result['closed_on'].notna().sum()
+    fraction_closed = closed / total if total > 0 else float('nan')
+    
+    with_funding = result['total_funding_usd'].notna() & (result['total_funding_usd'] > 0)
+    closed_with_funding = result.loc[with_funding, 'closed_on'].notna().sum()
+    total_with_funding = with_funding.sum()
+    fraction_closed_with_funding = closed_with_funding / total_with_funding if total_with_funding > 0 else float('nan')
+    
+    print(f"Fraction of total that is closed: {fraction_closed:.2%} ({closed}/{total})")
+    print(f"Fraction of those that raised money that closed: {fraction_closed_with_funding:.2%} ({closed_with_funding}/{total_with_funding})")
+    
+    if 'status' in result.columns:
+        print("\nPercent share of companies in each 'status' category:")
+        status_counts = result['status'].value_counts(normalize=True) * 100
+        for status, pct in status_counts.items():
+            print(f"  {status}: {pct:.2f}%")
+    else:
+        print("No 'status' column found in the data.") 
