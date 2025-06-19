@@ -279,132 +279,10 @@ def load_or_create_sample(companies_with_desc, sample_file, sample_size=100):
         print(f"📁 Creating new sample of {sample_size} companies...")
         return save_sample_companies(companies_with_desc, sample_file, sample_size)
 
-def run_multiple_models_analysis(companies_df, survey, agent, models_list):
-    """Run EDSL analysis with multiple models for comparison."""
-    
-    print(f"\n=== Step 4: Running Multi-Model Analysis ===\n")
-    
-    # Use the first 3 companies
-    edsl_companies = companies_df.head(3)
-    print(f"Using first 3 companies for model comparison...")
-    
-    # Create scenarios
-    print("Creating scenarios for each company...")
-    scenarios = []
-    for idx, row in edsl_companies.iterrows():
-        scenario = Scenario({
-            "company_name": row['name'],
-            "company_description": row['description'],
-            "company_uuid": row['uuid'],
-            "company_index": idx
-        })
-        scenarios.append(scenario)
-    
-    print(f"Created {len(scenarios)} scenarios\n")
-    
-    # Run survey with each model
-    all_results = {}
-    
-    for model_name in models_list:
-        print(f"Running analysis with {model_name}...")
-        try:
-            model = Model(model_name)
-            results = survey.by(agent).by(scenarios).by(model).run()
-            
-            print(f"✅ {model_name} completed successfully!")
-            print(f"Results: {len(results)} responses\n")
-            
-            all_results[model_name] = results
-            
-        except Exception as e:
-            print(f"❌ Error with {model_name}: {e}")
-            all_results[model_name] = None
-    
-    return all_results, edsl_companies
-
-def save_multi_model_results(all_results, companies_df, output_file):
-    """Save results from multiple models to CSV."""
-    
-    print(f"\n=== Step 5: Saving Multi-Model Results ===\n")
-    
-    # Create output directory
-    output_dir = Path("data/temp_output")
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Extract results for each model
-    data_rows = []
-    
-    for model_name, results in all_results.items():
-        if results is None:
-            continue
-            
-        for i, result in enumerate(results):
-            company_row = companies_df.iloc[i]
-            
-            data_row = {
-                'uuid': company_row['uuid'],
-                'company_name': company_row['name'],
-                'founded_on': company_row['founded_on'],
-                'total_funding_usd': company_row['total_funding_usd'],
-                'category_list': company_row['category_list'],
-                'model': model_name,
-                'main_customers': result.answer['main_customers'],
-                'main_product': result.answer['main_product']
-            }
-            data_rows.append(data_row)
-    
-    # Create DataFrame and save
-    results_df = pd.DataFrame(data_rows)
-    results_df.to_csv(output_file, index=False)
-    
-    print(f"✅ Multi-model results saved to: {output_file}")
-    print(f"📊 Total responses: {len(results_df)}")
-    
-    return results_df
-
-def save_multi_model_results_batched(results, companies_df, output_file):
-    """Save results from batched ModelList to CSV."""
-    
-    print(f"\n=== Step 5: Saving Batched Multi-Model Results ===\n")
-    
-    # Create output directory
-    output_dir = Path("data/temp_output")
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Extract results from batched response
-    data_rows = []
-    
-    for result in results:
-        # Get company index from result
-        company_idx = result.scenario.get('company_index', 0)
-        if company_idx < len(companies_df):
-            company_row = companies_df.iloc[company_idx]
-            
-            data_row = {
-                'uuid': company_row['uuid'],
-                'company_name': company_row['name'],
-                'founded_on': company_row['founded_on'],
-                'total_funding_usd': company_row['total_funding_usd'],
-                'category_list': company_row['category_list'],
-                'model': str(result.model),
-                'main_customers': result.answer['main_customers'],
-                'main_product': result.answer['main_product']
-            }
-            data_rows.append(data_row)
-    
-    # Create DataFrame and save
-    results_df = pd.DataFrame(data_rows)
-    results_df.to_csv(output_file, index=False)
-    
-    print(f"✅ Batched multi-model results saved to: {output_file}")
-    print(f"📊 Total responses: {len(results_df)}")
-    
-    return results_df
-
 def main():
     """Main execution function."""
     
-    print("🏥 Healthcare Company Analysis with ExpectedParrot (Multi-Model)\n")
+    print("🏥 Healthcare Company Analysis with ExpectedParrot (Single-Model)\n")
     
     # Check if sample already exists
     sample_file = Path("data/temp_output/healthcare_companies_sample.csv")
@@ -431,17 +309,13 @@ def main():
     # Step 3: Create EDSL survey
     survey, agent = create_edsl_survey()
     
-    # Step 4: Run analysis with multiple models (batched)
-    from edsl import ModelList
+    # Step 4: Run analysis with single model (gpt-4o-mini)
+    model_name = "gpt-4o-mini"
+    model = Model(model_name)
     
-    models = ModelList([
-        Model("gpt-4o-mini"),
-        Model("gemini-2.0-flash-exp")
-    ])
-    
-    # Use the first 30 companies
-    edsl_companies = selected_companies.head(30)
-    print(f"\nUsing first 30 companies for model comparison...")
+    # Use the last 4 companies
+    edsl_companies = selected_companies.tail(4)
+    print(f"\nUsing last 4 companies for analysis with {model_name}...")
     
     # Create scenarios
     print("Creating scenarios for each company...")
@@ -456,28 +330,27 @@ def main():
         scenarios.append(scenario)
     
     print(f"Created {len(scenarios)} scenarios")
-    print(f"Running batched analysis with {len(models)} models...")
-    print(f"Expected total responses: {len(scenarios)} × {len(models)} = {len(scenarios) * len(models)}")
+    print(f"Running analysis with {model_name}...")
+    print(f"Expected total responses: {len(scenarios)}")
     
-    # Run all models in one batched query
+    # Run the model
     try:
-        results = survey.by(agent).by(scenarios).by(models).run()
-        print(f"✅ Batched analysis completed successfully!")
+        results = survey.by(agent).by(scenarios).by(model).run()
+        print(f"✅ Analysis completed successfully!")
         print(f"Results: {len(results)} total responses\n")
         
         # Save results
-        output_file = Path("data/temp_output/healthcare_company_analysis_30_companies.csv")
-        results_df = save_multi_model_results_batched(results, edsl_companies, output_file)
+        output_file = Path("data/temp_output/healthcare_company_analysis_4_companies.csv")
+        results_df = save_results(results, edsl_companies, output_file)
         
-        # Display comparison results
-        print(f"\n=== Model Comparison Results (First 10 companies) ===\n")
-        comparison_df = results_df.pivot(index='company_name', columns='model', values=['main_customers', 'main_product'])
-        print(comparison_df.head(10))
+        # Display results
+        print(f"\n=== Analysis Results (First 10 companies) ===\n")
+        print(results_df.head(10))
         
-        print(f"\n🎉 Multi-model analysis complete! Check {output_file} for full results.")
+        print(f"\n🎉 Analysis complete! Check {output_file} for full results.")
         
     except Exception as e:
-        print(f"❌ Error in batched analysis: {e}")
+        print(f"❌ Error in analysis: {e}")
         return
 
 if __name__ == "__main__":

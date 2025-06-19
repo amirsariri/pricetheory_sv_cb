@@ -24,10 +24,10 @@ set more off
 
 cd "$DataPath"
 
-local csvfiles: dir "$DataPath/250612_cb_data" files "*.csv"
+local csvfiles: dir "$DataPath/processed" files "orgs_2012_2019_survived.csv"
 
 foreach filename of local csvfiles {
-	import delimit "$DataPath/1raw/`filename'", varn(1) clear
+	import delimit "$DataPath/processed/`filename'", varn(1) clear
 	local filename: subinstr local filename ".csv" ""
-	sa "`filename'.dta", replace
+	sa "$DataPath/processed/dta/`filename'.dta", replace
 }
