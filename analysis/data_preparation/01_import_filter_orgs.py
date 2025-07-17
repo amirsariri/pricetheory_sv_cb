@@ -93,6 +93,46 @@ result = pd.concat(chunks, ignore_index=True)
 if SAMPLE:
     result = result.head(100)
 
+# After filtering and before saving, merge in the description field from organization_descriptions.csv using uuid
+# Path to the descriptions file
+DESC_FILE = DATA_DIR / "organization_descriptions.csv"
+if DESC_FILE.exists():
+    desc_df = pd.read_csv(DESC_FILE, usecols=["uuid", "description"])
+    if "uuid" in result.columns:
+        result = result.merge(desc_df, on="uuid", how="left")
+    else:
+        print("Warning: 'uuid' column not found in filtered results, cannot merge descriptions.")
+else:
+    print(f"Warning: Descriptions file not found: {DESC_FILE}")
+
+# Exclude companies with a blank or missing description
+if "description" in result.columns:
+    result = result[result["description"].notna() & (result["description"].str.strip() != "")]
+
+# Remove companies with less than 150 characters in the description
+if "description" in result.columns:
+    result = result[result["description"].str.len() >= 50]
+
+# After filtering and before saving, and after excluding blank descriptions
+if "description" in result.columns:
+    pass # Removed histogram plotting
+
+# Remove companies with 'Consulting' in the category_list (case-insensitive)
+if "category_list" in result.columns:
+    result = result[~result["category_list"].str.contains("Consulting", case=False, na=False)]
+    # Remove companies with 'Rental Company' in the category_list (case-insensitive)
+    result = result[~result["category_list"].str.contains("Rental Property", case=False, na=False)]
+    # Remove companies with 'Property Management' in the category_list (case-insensitive)
+    result = result[~result["category_list"].str.contains("Property Management", case=False, na=False)]
+
+# Update 'closed_update': 1 if 'updated_at' is before 2021-01-01 OR status is 'closed'
+if "updated_at" in result.columns:
+    result["updated_at"] = pd.to_datetime(result["updated_at"], errors="coerce")
+    closed_update_mask = (result["updated_at"] < pd.Timestamp("2021-01-01"))
+    if "status" in result.columns:
+        closed_update_mask = closed_update_mask | (result["status"].str.lower() == "closed")
+    result["closed_update"] = closed_update_mask.astype(int)
+
 # Save to CSV
 result.to_csv(OUTPUT_FILE, index=False)
 
@@ -127,3 +167,9 @@ if len(result) > 0:
             print(f"  {status}: {pct:.2f}%")
     else:
         print("No 'status' column found in the data.") 
+
+# Print fraction of companies with closed_update == 1
+if "closed_update" in result.columns:
+    closed_update_count = result["closed_update"].sum()
+    closed_update_fraction = closed_update_count / len(result) if len(result) > 0 else float('nan')
+    print(f"Fraction of companies with closed_update=1: {closed_update_fraction:.2%} ({closed_update_count}/{len(result)})") 
