@@ -16,7 +16,7 @@ ORG_FILE = DATA_DIR / "organizations.csv"
 OUTPUT_DIR = PROJECT_ROOT / "data/processed"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # Update output filename to reflect new period and sample
-output_name = "orgs_2012_2019_survived_sample.csv" if SAMPLE else "orgs_2012_2019_survived.csv"
+output_name = "orgs_2012_2018_survived_sample.csv" if SAMPLE else "orgs_2012_2018_survived.csv"
 OUTPUT_FILE = OUTPUT_DIR / output_name
 
 def survived_at_least_12_months(row):
@@ -62,8 +62,8 @@ for chunk in pd.read_csv(ORG_FILE, chunksize=100_000, low_memory=False):
     chunk["closed_on"] = pd.to_datetime(chunk["closed_on"], errors="coerce")
     
     # Apply filters:
-    # 1. Founded between 2012-2019
-    founded_mask = chunk["founded_on"].dt.year.between(2012, 2019, inclusive="both")
+    # 1. Founded between 2012-2018
+    founded_mask = chunk["founded_on"].dt.year.between(2012, 2018, inclusive="both")
     
     # 2. Has homepage URL (not null and not empty)
     homepage_mask = chunk["homepage_url"].notna() & (chunk["homepage_url"] != "")
@@ -77,8 +77,11 @@ for chunk in pd.read_csv(ORG_FILE, chunksize=100_000, low_memory=False):
     # 6. Primary role is 'company'
     role_mask = chunk["primary_role"] == "company"
     
+    # 5. Has postal code (not null and not empty)
+    postal_mask = chunk["postal_code"].notna() & (chunk["postal_code"] != "")
+
     # Combine all filters (removed funding_mask)
-    combined_mask = founded_mask & homepage_mask & survival_mask & us_mask & role_mask
+    combined_mask = founded_mask & homepage_mask & survival_mask & us_mask & role_mask & postal_mask
     
     filtered = chunk.loc[combined_mask]
     chunks.append(filtered)
