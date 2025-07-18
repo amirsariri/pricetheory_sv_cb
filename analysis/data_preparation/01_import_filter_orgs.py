@@ -111,7 +111,7 @@ if "description" in result.columns:
 
 # Remove companies with less than 150 characters in the description
 if "description" in result.columns:
-    result = result[result["description"].str.len() >= 50]
+    result = result[result["description"].str.len() >= 150]
 
 # After filtering and before saving, and after excluding blank descriptions
 if "description" in result.columns:
@@ -121,7 +121,7 @@ if "description" in result.columns:
 if "category_list" in result.columns:
     result = result[~result["category_list"].str.contains("Consulting", case=False, na=False)]
     # Remove companies with 'Rental Company' in the category_list (case-insensitive)
-    result = result[~result["category_list"].str.contains("Rental Property", case=False, na=False)]
+    result = result[~result["category_list"].str.contains("Rental Company", case=False, na=False)]
     # Remove companies with 'Property Management' in the category_list (case-insensitive)
     result = result[~result["category_list"].str.contains("Property Management", case=False, na=False)]
 
