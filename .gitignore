@@ -38,6 +38,7 @@ ENV/
 data/raw/*
 *.zip
 *.csv
+!data/processed/orgs_2012_2018_survived.csv
 *.parquet
 
 # OS
