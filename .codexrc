@@ -1,0 +1,3 @@
+[agent]
+approval = "diff" # other options: auto | ask
+model = "gpt-4o-mini" 

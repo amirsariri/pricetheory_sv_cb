@@ -1,15 +1,16 @@
-# ImageNet-2012 Crunchbase Dataset
+# Startup Competition Analysis: Crunchbase Dataset
 
-This repository contains tools for downloading and processing Crunchbase data for companies in the ImageNet-2012 dataset. The project supports both Kaggle and official Crunchbase API data sources.
+This repository contains a comprehensive analysis of startup competition and entrepreneurship effects using Crunchbase data. The project analyzes how entry into entrepreneurship affects existing startups' success and wages, with a focus on identifying competitors and understanding competitive dynamics in the startup ecosystem.
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.9 or higher
+- Python 3.12 or higher
 - Poetry for dependency management
-- Kaggle account and API credentials (for Kaggle data source)
-- Crunchbase API credentials (for S3 data source)
+- R and Stata for statistical analysis
+- OpenAI API key for Codex CLI and EDSL analysis
+- Crunchbase data access (Kaggle or S3)
 
 ### Installation
 
@@ -24,54 +25,117 @@ cd imagenet_2012_cb
 poetry install
 ```
 
-### Using Kaggle Data Source
+### Data Setup
 
-1. Set up Kaggle credentials:
+1. **Crunchbase Data**: Place your Crunchbase data files in `data/250612_cb_data/`
+   - `organizations.csv` - Company information
+   - `organization_descriptions.csv` - Company descriptions
+
+2. **Environment Setup**: Set up your OpenAI API key:
 ```bash
-export KAGGLE_USERNAME=<your-kaggle-username>
-export KAGGLE_KEY=<your-kaggle-api-key>
+export OPENAI_API_KEY="your-api-key"
 ```
 
-2. Download the data:
+3. **Install Dependencies**:
 ```bash
-poetry run python -m imagenet_cb.download --source kaggle
+poetry install
 ```
 
-### Using Crunchbase S3 Data Source
+### Data Processing Pipeline
 
-1. Create a `.env` file with your Crunchbase credentials:
+1. **Filter Companies**: Run the data preparation script to filter US startups (2012-2018):
 ```bash
-echo "CB_S3_KEY=your-key" > .env
-echo "CB_S3_SECRET=your-secret" >> .env
+cd analysis/data_preparation
+python 01_import_filter_orgs.py
 ```
 
-2. Download the data:
+2. **Generate EDSL Analysis**: Use ExpectedParrot to analyze company descriptions:
 ```bash
-poetry run python -m imagenet_cb.download --source s3
+cd analysis/expectedparrot
+python 04_full_dataset_analysis.py
+```
+
+3. **Run Clustering**: Identify competitors using the clustering algorithm:
+```bash
+cd analysis/clustering
+python 01_text_embeddings.py
 ```
 
 ## Project Structure
 
 ```
-imagenet_2012_cb/
+startup-competition-analysis/
+├── analysis/
+│   ├── clustering/           # Competitor identification algorithms
+│   ├── data_preparation/     # Data filtering and processing
+│   ├── cost_estimation/      # SEMrush API cost analysis
+│   ├── expectedparrot/       # EDSL-based company analysis
+│   ├── 00master.do          # Main Stata analysis script
+│   ├── 10globals.do         # Stata global variables
+│   └── 30clean.do           # Data cleaning procedures
 ├── data/
-│   ├── raw/           # Original Crunchbase data
-│   └── processed/     # Processed datasets
+│   ├── 250612_cb_data/      # Raw Crunchbase data
+│   ├── processed/           # Processed datasets
+│   │   ├── orgs_2012_2018_survived.csv  # Filtered companies (~103K)
+│   │   ├── edsl_survey.csv              # EDSL analysis results (~37K)
+│   │   └── urlcheck.csv                 # Website validation results
+│   └── temp_output/         # Temporary analysis outputs
 ├── src/
-│   └── imagenet_cb/   # Python package
-│       ├── paths.py   # Path management
-│       ├── download.py # Data download utilities
-│       ├── filter.py  # Data filtering
-│       └── milestones.py # Milestone processing
-├── pyproject.toml     # Project dependencies
-└── README.md         # This file
+│   └── imagenet_cb/         # Legacy utilities (to be refactored)
+├── references/              # Research papers and documentation
+├── tests/                   # Test files
+├── pyproject.toml          # Python dependencies
+└── README.md              # This file
 ```
+
+## Research Components
+
+### Data Processing
+- **Company Filtering**: Identifies US startups founded 2012-2018 that survived ≥12 months
+- **Website Validation**: Checks company websites for active status vs. parked domains
+- **Description Analysis**: Uses EDSL to extract product/market descriptions from company text
+
+### Competitor Analysis
+- **Text Embeddings**: Converts EDSL-generated descriptions to semantic vectors
+- **Multi-modal Similarity**: Combines text similarity with category overlap
+- **Clustering Algorithms**: Hierarchical and density-based clustering for competitor identification
+
+### Cost Estimation
+- **SEMrush Analysis**: Estimates API costs for competitive intelligence data collection
+- **Company-years Calculation**: Determines total data points needed for analysis
+
+### Statistical Analysis
+- **Stata Integration**: Master scripts for econometric analysis
+- **R Support**: Additional statistical modeling capabilities
+
+## Research Focus
+
+This project investigates the effects of entrepreneurial entry on existing startups' performance and wages. Key research questions include:
+
+1. **Competitive Dynamics**: How do new entrants affect incumbent startup success?
+2. **Market Concentration**: What is the relationship between market entry and competitive intensity?
+3. **Wage Effects**: How does entrepreneurial competition impact employee compensation?
+4. **Survival Analysis**: What factors predict startup survival in competitive markets?
 
 ## Development
 
-- Code style is enforced using Black and isort
-- Tests can be run using `poetry run pytest`
-- GitHub Actions workflow runs tests on push
+- **Python**: Data processing, clustering algorithms, and API integrations
+- **Stata**: Econometric analysis and statistical modeling
+- **Code Style**: Enforced using Black and isort
+- **Testing**: Run tests using `poetry run pytest`
+- **Version Control**: GitHub Actions workflow for automated testing
+
+## Key Datasets
+
+- **~103,000 US startups** (2012-2018, survived ≥12 months)
+- **~37,500 companies** with EDSL-generated product/market descriptions
+- **Website validation data** for active vs. inactive companies
+- **Crunchbase categories** for industry classification
+
+## References
+
+- Simons, K. (2010). "Entrepreneurs Seeking Gains: Profit Motives and Risk Aversion in Inventors"
+- Wu, B., & Knott, A. M. (2006). "Entrepreneurial Risk and Market Entry"
 
 ## License
 
