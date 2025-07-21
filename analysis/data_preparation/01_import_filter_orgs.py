@@ -109,9 +109,9 @@ else:
 if "description" in result.columns:
     result = result[result["description"].notna() & (result["description"].str.strip() != "")]
 
-# Remove companies with less than 150 characters in the description
+# Remove companies with less than 50 characters in the description
 if "description" in result.columns:
-    result = result[result["description"].str.len() >= 150]
+    result = result[result["description"].str.len() >= 50]
 
 # After filtering and before saving, and after excluding blank descriptions
 if "description" in result.columns:
