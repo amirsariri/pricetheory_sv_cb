@@ -1,10 +1,11 @@
 [tool.poetry]
-name = "imagenet-cb"
+name = "startup-competition-analysis"
 version = "0.1.0"
-description = "Crunchbase data analysis for ImageNet-2012 companies"
-authors = ["Your Name <your.email@example.com>"]
+description = "Analysis of startup competition and entrepreneurship effects using Crunchbase data"
+authors = ["Amir Sariri <asaririk@gmail.com>"]
 readme = "README.md"
 packages = [{include = "imagenet_cb", from = "src"}]
+repository = "https://github.com/amirsariri/pricetheory_sv_cb"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
@@ -16,12 +17,18 @@ tqdm = "^4.66.1"
 click = "^8.1.7"
 kaggle = "^1.5.16"
 edsl = "^0.1.61"
+numpy = "^1.26.0"
+beautifulsoup4 = "^4.12.0"
+dnspython = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
 black = "^24.1.1"
 isort = "^5.13.2"
 flake8 = "^7.0.0"
+jupyter = "^1.0.0"
+matplotlib = "^3.8.0"
+seaborn = "^0.13.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -34,4 +41,15 @@ include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
-multi_line_output = 3 
+multi_line_output = 3
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+exclude = ["__pycache__", ".git", ".venv", "venv"] 

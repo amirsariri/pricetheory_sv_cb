@@ -189,4 +189,6 @@ dmypy.json
 .pyre/
 
 # Virtual environments
-edsl_test_env/ 
+edsl_test_env/
+# Poetry virtual environments
+.venv/ 
