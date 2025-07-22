@@ -1,0 +1,207 @@
+{
+  "settings": {
+    "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+    "k": 5,
+    "tau": 0.5,
+    "alpha": 0.6,
+    "seed": 42,
+    "input": "../../data/processed/edsl_survey_sample.csv",
+    "output_dir": "../../data/processed/competitor_clustering_test"
+  },
+  "metrics": {
+    "silhouette_score": 0.03777167201042175,
+    "n_clusters": 37,
+    "avg_cluster_size": 2.7027027027027026,
+    "min_cluster_size": "1",
+    "max_cluster_size": "16",
+    "graph_density": 0.03777777777777778,
+    "intra_cluster_density": 0.3553008595988539
+  },
+  "validation_samples": [
+    {
+      "cluster_id": 17,
+      "cluster_size": 1,
+      "companies": [
+        {
+          "name": "Jupiter Research",
+          "customers": "Essential oil and plant extractors.",
+          "product": "Vaporization technology for essential oils.",
+          "categories": "Business Development,Hardware,Manufacturing"
+        }
+      ]
+    },
+    {
+      "cluster_id": 13,
+      "cluster_size": 1,
+      "companies": [
+        {
+          "name": "SecondBrain",
+          "customers": "Aspiring songwriters and musicians.",
+          "product": "AI-driven lyric writing assistance.",
+          "categories": "Artificial Intelligence (AI),Content,Music,Software"
+        }
+      ]
+    },
+    {
+      "cluster_id": 4,
+      "cluster_size": 9,
+      "companies": [
+        {
+          "name": "Vybrant Technology Solutions",
+          "customers": "Eco-conscious businesses and organizations.",
+          "product": "Clean-tech software development solutions.",
+          "categories": "Software"
+        },
+        {
+          "name": "B3 Software",
+          "customers": "Small to midsize enterprises (SMEs).",
+          "product": "Enterprise software solutions for SMBs.",
+          "categories": "Developer Tools,Internet,Software"
+        },
+        {
+          "name": "Shoutem",
+          "customers": "Non-technical app creators and businesses.",
+          "product": "No-code mobile app development platform.",
+          "categories": "Ad Network,Mobile,Mobile Apps"
+        },
+        {
+          "name": "can",
+          "customers": "Tech startups and enterprises.",
+          "product": "Custom software development solutions.",
+          "categories": "Social Media,Social Network,Web Development"
+        },
+        {
+          "name": "Infolink-EXP",
+          "customers": "Rapidly scaling tech companies.",
+          "product": "Outsourced customer support solutions.",
+          "categories": "Consumer Electronics,Customer Service,DIY,Internet of Things,Outsourcing,SaaS,Smart Home,Software"
+        },
+        {
+          "name": "BLUE1647",
+          "customers": "Entrepreneurs, creatives, nonprofits, tech professionals.",
+          "product": "Tech innovation and entrepreneurship support.",
+          "categories": "Business Intelligence,Incubators,Professional Services"
+        },
+        {
+          "name": "ArtCloud",
+          "customers": "Creative businesses and artists.",
+          "product": "Creative business software solutions.",
+          "categories": "Art,Artificial Intelligence (AI),Cloud Management,CRM,Database,Sales,Software"
+        },
+        {
+          "name": "Railsware",
+          "customers": "Startups and growing tech companies.",
+          "product": "Innovative software solutions and tools.",
+          "categories": "Analytics,Email,Productivity Tools,SaaS,Software Engineering"
+        },
+        {
+          "name": "Cloud Ready Solutions",
+          "customers": "Businesses seeking innovative software solutions.",
+          "product": "Custom software solutions and services.",
+          "categories": "Software"
+        }
+      ]
+    },
+    {
+      "cluster_id": 29,
+      "cluster_size": 1,
+      "companies": [
+        {
+          "name": "SignaCert",
+          "customers": "IT compliance-focused organizations and enterprises.",
+          "product": "IT compliance monitoring solutions.",
+          "categories": "Cyber Security,IT Management,Software"
+        }
+      ]
+    },
+    {
+      "cluster_id": 35,
+      "cluster_size": 1,
+      "companies": [
+        {
+          "name": "Coriant America",
+          "customers": "Telecommunications service providers and enterprises.",
+          "product": "Optical transport and switching solutions.",
+          "categories": "Enterprise Applications,Service Industry,Software,Telecommunications"
+        }
+      ]
+    },
+    {
+      "cluster_id": 25,
+      "cluster_size": 1,
+      "companies": [
+        {
+          "name": "Topify",
+          "customers": "Mobile forum enthusiasts and users.",
+          "product": "Mobile forum browsing application.",
+          "categories": "Mobile Devices,Online Forums,Social Media"
+        }
+      ]
+    },
+    {
+      "cluster_id": 6,
+      "cluster_size": 3,
+      "companies": [
+        {
+          "name": "Complete Medical wellness",
+          "customers": "Patients seeking specialized medical care.",
+          "product": "Comprehensive multi-specialty medical treatments.",
+          "categories": "Health Care,Home Health Care,Medical"
+        },
+        {
+          "name": "Virtualis",
+          "customers": "Healthcare providers and patients.",
+          "product": "Virtual reality solutions for healthcare.",
+          "categories": "Cloud Computing,Health Care,Information Technology,Software,Virtualization"
+        },
+        {
+          "name": "DocASAP",
+          "customers": "Health systems, payors, physician groups.",
+          "product": "Patient access and engagement platform.",
+          "categories": "Health Care,Hospital,Scheduling"
+        }
+      ]
+    },
+    {
+      "cluster_id": 26,
+      "cluster_size": 1,
+      "companies": [
+        {
+          "name": "Teq AVIT",
+          "customers": "Businesses needing affordable AV solutions.",
+          "product": "Affordable wireless AV/IT solutions.",
+          "categories": "Digital Signage,Hardware,Software"
+        }
+      ]
+    },
+    {
+      "cluster_id": 24,
+      "cluster_size": 1,
+      "companies": [
+        {
+          "name": "MetaSoul",
+          "customers": "Tech companies, gaming studios, healthcare.",
+          "product": "Emotion synthesis for AI models.",
+          "categories": "Artificial Intelligence (AI),Gaming,Metaverse,SaaS,Software"
+        }
+      ]
+    },
+    {
+      "cluster_id": 16,
+      "cluster_size": 1,
+      "companies": [
+        {
+          "name": "Mightycause",
+          "customers": "Nonprofits and individual fundraisers.",
+          "product": "Online fundraising platform for nonprofits.",
+          "categories": "Charity,Crowdfunding,Non Profit,SaaS,Software"
+        }
+      ]
+    }
+  ],
+  "output_files": {
+    "clustered_data": "../../data/processed/competitor_clustering_test/clustered_companies.csv",
+    "adjacency_matrix": "../../data/processed/competitor_clustering_test/adjacency_matrix.npz",
+    "embeddings": "../../data/processed/competitor_clustering_test/embeddings.npy"
+  }
+}

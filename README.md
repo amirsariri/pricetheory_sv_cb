@@ -57,8 +57,8 @@ python 04_full_dataset_analysis.py
 
 3. **Run Clustering**: Identify competitors using the clustering algorithm:
 ```bash
-cd analysis/clustering
-python 01_text_embeddings.py
+cd analysis/competitor_clustering/scripts
+python run_pipeline.py
 ```
 
 ## Project Structure
@@ -66,7 +66,7 @@ python 01_text_embeddings.py
 ```
 startup-competition-analysis/
 ├── analysis/
-│   ├── clustering/           # Competitor identification algorithms
+│   ├── competitor_clustering/ # Competitor identification algorithms
 │   ├── data_preparation/     # Data filtering and processing
 │   ├── cost_estimation/      # SEMrush API cost analysis
 │   ├── expectedparrot/       # EDSL-based company analysis
@@ -77,7 +77,7 @@ startup-competition-analysis/
 │   ├── 250612_cb_data/      # Raw Crunchbase data
 │   ├── processed/           # Processed datasets
 │   │   ├── orgs_2012_2018_survived.csv  # Filtered companies (~103K)
-│   │   ├── edsl_survey.csv              # EDSL analysis results (~37K)
+│   │   ├── edsl_survey.csv              # EDSL analysis results (~100K)
 │   │   └── urlcheck.csv                 # Website validation results
 │   └── temp_output/         # Temporary analysis outputs
 ├── src/
@@ -96,9 +96,10 @@ startup-competition-analysis/
 - **Description Analysis**: Uses EDSL to extract product/market descriptions from company text
 
 ### Competitor Analysis
-- **Text Embeddings**: Converts EDSL-generated descriptions to semantic vectors
-- **Multi-modal Similarity**: Combines text similarity with category overlap
-- **Clustering Algorithms**: Hierarchical and density-based clustering for competitor identification
+- **Text Embeddings**: Converts EDSL-generated descriptions to semantic vectors using sentence transformers
+- **Similarity Graphs**: Builds k-NN similarity graphs with category overlap using FAISS
+- **Leiden Clustering**: Graph-based clustering algorithm for competitor identification
+- **Validation Framework**: Comprehensive metrics and manual validation samples
 
 ### Cost Estimation
 - **SEMrush Analysis**: Estimates API costs for competitive intelligence data collection
@@ -128,6 +129,6 @@ This project investigates the effects of entrepreneurial entry on existing start
 ## Key Datasets
 
 - **~103,000 US startups** (2012-2018, survived ≥12 months)
-- **~37,500 companies** with EDSL-generated product/market descriptions
+- **~100,000 companies** with EDSL-generated product/market descriptions
 - **Website validation data** for active vs. inactive companies
 - **Crunchbase categories** for industry classification

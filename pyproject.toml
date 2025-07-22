@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Analysis of startup competition and entrepreneurship effects using Crunchbase data"
 authors = ["Amir Sariri <asaririk@gmail.com>"]
 readme = "README.md"
-packages = [{include = "imagenet_cb", from = "src"}]
+packages = [
+    { include = "imagenet_cb", from = "src" },
+    { include = "competitors",  from = "analysis/competitor_clustering/src" }
+]
 repository = "https://github.com/amirsariri/pricetheory_sv_cb"
 
 [tool.poetry.dependencies]
@@ -20,6 +23,16 @@ edsl = "^0.1.61"
 numpy = "^1.26.0"
 beautifulsoup4 = "^4.12.0"
 dnspython = "^2.4.0"
+sentence-transformers = "^2.7"
+faiss-cpu = "^1.8"
+leidenalg = "^0.10"
+networkx = "^3.3"
+hdbscan = "^0.8"
+hydra-core = "^1.3"
+loguru = "^0.7"
+scipy = "^1.12"
+igraph = "^0.11"
+scikit-learn = "^1.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
@@ -29,6 +42,8 @@ flake8 = "^7.0.0"
 jupyter = "^1.0.0"
 matplotlib = "^3.8.0"
 seaborn = "^0.13.0"
+pre-commit = "^3.7"
+mypy = "^1.10"
 
 [build-system]
 requires = ["poetry-core"]
