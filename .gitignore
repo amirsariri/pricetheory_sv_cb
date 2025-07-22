@@ -38,8 +38,10 @@ ENV/
 data/raw/*
 *.zip
 *.csv
-!data/processed/orgs_2012_2018_survived.csv
 *.parquet
+# Large data files
+data/processed/orgs_2012_2018_survived.csv
+data/processed/dta/orgs_2012_2019_survived.dta
 
 # OS
 .DS_Store
