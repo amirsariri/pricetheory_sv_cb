@@ -18,12 +18,12 @@ from competitors.pipeline import run_competitor_clustering
 def test_small_sample():
     """Test the pipeline on a small sample of data."""
     
-    # Create test settings with smaller model
+    # Create test settings with original parameters but better filtering
     settings = CompetitorSettings(
         model_name="sentence-transformers/all-MiniLM-L6-v2",  # Smaller model for testing
-        k=5,
-        tau=0.5,
-        alpha=0.6,
+        k=20,
+        tau=0.55,  # Back to original threshold
+        alpha=0.7,  # Slightly more product-focused
         seed=42,
         input=Path("../../data/processed/edsl_survey.csv"),
         output_dir=Path("../../data/processed/competitor_clustering_test")

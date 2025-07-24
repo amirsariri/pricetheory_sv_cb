@@ -1,5 +1,6 @@
 from typing import List, Tuple
 import numpy as np
+import pandas as pd
 import faiss
 from scipy.sparse import csr_matrix
 from loguru import logger
@@ -19,9 +20,13 @@ def _calculate_category_similarity(categories: List[str]) -> np.ndarray:
                 similarity_matrix[i, j] = 1.0
                 continue
                 
+            # Handle NaN values and convert to string
+            cat_i = str(categories[i]) if categories[i] and not pd.isna(categories[i]) else ""
+            cat_j = str(categories[j]) if categories[j] and not pd.isna(categories[j]) else ""
+            
             # Parse categories (comma-separated)
-            cats_i = set(cat.strip() for cat in categories[i].split(',')) if categories[i] else set()
-            cats_j = set(cat.strip() for cat in categories[j].split(',')) if categories[j] else set()
+            cats_i = set(cat.strip() for cat in cat_i.split(',')) if cat_i else set()
+            cats_j = set(cat.strip() for cat in cat_j.split(',')) if cat_j else set()
             
             # Jaccard similarity
             if cats_i and cats_j:
@@ -40,7 +45,7 @@ def build_similarity_graph(
     settings: CompetitorSettings
 ) -> csr_matrix:
     """
-    Build similarity graph using direct cosine similarity computation.
+    Build similarity graph using memory-efficient approach with batch processing.
     
     Args:
         embeddings: Company embeddings array
@@ -54,21 +59,49 @@ def build_similarity_graph(
     
     n_companies = len(embeddings)
     
-    # Compute cosine similarities directly (avoiding FAISS for now)
-    similarities = np.dot(embeddings, embeddings.T)
+    # Normalize embeddings for cosine similarity
+    embeddings_norm = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
     
-    # Build adjacency matrix
+    # Calculate category similarities (this is memory-intensive but necessary)
+    logger.info("Calculating category similarities...")
+    category_similarities = _calculate_category_similarity(categories)
+    
+    # Build adjacency matrix with memory-efficient batch processing
     rows, cols, data = [], [], []
+    batch_size = 1000  # Process in batches to manage memory
     
-    for i in range(n_companies):
-        for j in range(i + 1, n_companies):  # Only upper triangle
-            sim = similarities[i, j]
+    logger.info(f"Processing similarity matrix in batches of {batch_size}")
+    
+    for start_idx in range(0, n_companies, batch_size):
+        end_idx = min(start_idx + batch_size, n_companies)
+        logger.info(f"Processing batch {start_idx//batch_size + 1}/{(n_companies + batch_size - 1)//batch_size}")
+        
+        # Compute cosine similarities for this batch
+        batch_embeddings = embeddings_norm[start_idx:end_idx]
+        batch_similarities = np.dot(batch_embeddings, embeddings_norm.T)
+        
+        # Process each company in the batch
+        for i in range(end_idx - start_idx):
+            global_i = start_idx + i
             
-            # Add edge if above threshold
-            if sim >= settings.tau:
-                rows.extend([i, j])  # Add both directions
-                cols.extend([j, i])
-                data.extend([sim, sim])
+            # Find similar companies (only upper triangle to avoid duplicates)
+            for j in range(global_i + 1, n_companies):
+                text_sim = batch_similarities[i, j]
+                cat_sim = category_similarities[global_i, j]
+                
+                # Combined similarity: 80% text, 20% category
+                combined_sim = 0.8 * text_sim + 0.2 * cat_sim
+                
+                # Smart filtering: use text similarity as primary, category as secondary
+                if text_sim >= settings.tau:  # Primary filter
+                    # Only add edge if categories are reasonably similar OR text similarity is very high
+                    if cat_sim >= 0.1 or text_sim >= 0.8:
+                        rows.extend([global_i, j])  # Add both directions
+                        cols.extend([j, global_i])
+                        data.extend([combined_sim, combined_sim])
+        
+        # Clear batch memory
+        del batch_similarities
     
     # Create sparse matrix
     adjacency_matrix = csr_matrix(

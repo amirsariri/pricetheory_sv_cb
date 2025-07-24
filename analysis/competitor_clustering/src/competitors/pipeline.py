@@ -10,6 +10,7 @@ from .embed import get_embeddings
 from .graph import build_similarity_graph
 from .cluster import find_clusters
 from .validate import calculate_clustering_metrics, generate_validation_samples, log_clustering_summary
+from .llm_validate import validate_clusters_with_llm, save_llm_validation_results
 
 
 def run_competitor_clustering(settings: CompetitorSettings) -> dict:
@@ -31,6 +32,29 @@ def run_competitor_clustering(settings: CompetitorSettings) -> dict:
     logger.info(f"Loading data from {settings.input}")
     df = pd.read_csv(settings.input)
     logger.info(f"Loaded {len(df)} companies")
+    
+    # Load original company data to get descriptions
+    logger.info("Loading original company data for descriptions")
+    # Try different possible paths for the original file
+    possible_paths = [
+        Path("../../data/processed/orgs_2012_2018_survived.csv"),  # From competitor_clustering/
+        Path("../../../data/processed/orgs_2012_2018_survived.csv"),  # From competitor_clustering/scripts/
+        Path("data/processed/orgs_2012_2018_survived.csv"),  # From project root
+    ]
+    
+    original_file = None
+    for path in possible_paths:
+        if path.exists():
+            original_file = path
+            break
+    
+    if original_file:
+        original_df = pd.read_csv(original_file, usecols=['uuid', 'description'])
+        df = df.merge(original_df, on='uuid', how='left')
+        logger.info(f"Merged descriptions for {df['description'].notna().sum()} companies")
+    else:
+        logger.warning(f"Original file not found. Tried paths: {[str(p) for p in possible_paths]}")
+        df['description'] = None
     
     # Clean text descriptions
     logger.info("Cleaning text descriptions")
@@ -70,7 +94,23 @@ def run_competitor_clustering(settings: CompetitorSettings) -> dict:
     logger.info("Generating validation samples")
     validation_samples = generate_validation_samples(df, labels, n_samples=10)
     
-    # Step 7: Save results
+    # Initialize metadata
+    metadata = {
+        'settings': settings.model_dump(),
+        'metrics': metrics,
+        'validation_samples': validation_samples,
+        'output_files': {
+            'clustered_data': str(settings.output_dir / "clustered_companies.csv"),
+            'adjacency_matrix': str(settings.output_dir / "adjacency_matrix.npz"),
+            'embeddings': str(settings.output_dir / "embeddings.npy")
+        }
+    }
+    
+    # Step 7: LLM-based cluster validation (disabled for now)
+    logger.info("LLM validation disabled - will be run as separate stage")
+    metadata['llm_validation'] = {'disabled': 'will be run separately'}
+    
+    # Step 8: Save results
     logger.info("Saving results")
     
     # Add cluster labels to dataframe
@@ -81,17 +121,7 @@ def run_competitor_clustering(settings: CompetitorSettings) -> dict:
     df.to_csv(output_file, index=False)
     logger.info(f"Saved clustered data to {output_file}")
     
-    # Save metadata
-    metadata = {
-        'settings': settings.model_dump(),
-        'metrics': metrics,
-        'validation_samples': validation_samples,
-        'output_files': {
-            'clustered_data': str(output_file),
-            'adjacency_matrix': str(settings.output_dir / "adjacency_matrix.npz"),
-            'embeddings': str(settings.output_dir / "embeddings.npy")
-        }
-    }
+    # Save metadata (already initialized above)
     
     metadata_file = settings.output_dir / "metadata.json"
     with open(metadata_file, 'w') as f:

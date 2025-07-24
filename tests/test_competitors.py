@@ -56,8 +56,8 @@ def sample_data():
 def test_clean_text():
     """Test text cleaning functionality."""
     # Test basic cleaning
-    assert clean_text("Tech-Savvy Homeowners Inc.") == "tech-savvy homeowners ."
-    assert clean_text("AI-Driven Platform LLC") == "ai-driven platform "
+    assert clean_text("Tech-Savvy Homeowners Inc.") == "tech-savvy homeowners"
+    assert clean_text("AI-Driven Platform LLC") == "ai-driven platform"
     
     # Test empty/null inputs
     assert clean_text("") == ""

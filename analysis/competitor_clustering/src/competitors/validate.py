@@ -107,7 +107,8 @@ def generate_validation_samples(
                 'name': company['company_name'],
                 'customers': company['main_customers'],
                 'product': company['main_product'],
-                'categories': company['category_list']
+                'categories': company['category_list'],
+                'description': company.get('description', 'N/A')
             })
         
         samples.append(sample)

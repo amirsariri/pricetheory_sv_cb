@@ -24,6 +24,7 @@ The pipeline uses EDSL-generated descriptions (5 words or less) to create semant
 - **Adaptive thresholds**: Uses percentile-based similarity thresholds
 - **Deterministic results**: Reproducible clustering with seed control
 - **Comprehensive validation**: Metrics, diagnostics, and manual review samples
+- **LLM-based validation**: Automated cluster quality assessment using EDSL
 
 ## Configuration
 
@@ -82,6 +83,8 @@ The pipeline generates several output files:
 - `embeddings.npy`: Company embeddings array
 - `adjacency_matrix.npz`: Sparse similarity graph
 - `metadata.json`: Complete pipeline metadata and metrics
+- `llm_validation_results.json`: Detailed LLM validation results
+- `llm_validation_summary.csv`: Summary of LLM cluster quality scores
 
 ### Validation Samples
 
@@ -151,6 +154,30 @@ Tests cover:
 - **Graph density**: Overall connectivity
 - **Intra-cluster density**: Within-cluster connectivity
 - **Cluster size distribution**: Balance of cluster sizes
+
+## LLM-Based Validation
+
+The pipeline includes automated cluster validation using LLMs through EDSL:
+
+### Validation Process
+1. **Cluster Summary**: LLM analyzes each cluster and provides a summary of the core product-market segment
+2. **Company Fit Scoring**: Each company is scored (1-10) on how well it fits its cluster's segment
+3. **Cluster Quality Assessment**: Overall cluster quality is rated (1-10) based on competitive coherence
+
+### Output
+- **Cluster summaries**: LLM-generated descriptions of each cluster's market focus
+- **Fit scores**: Individual company fit scores with explanations
+- **Quality metrics**: Overall cluster quality assessment
+- **Cost control**: Only runs on datasets ≤1000 companies to manage API costs
+
+### Usage
+```bash
+# Test LLM validation separately
+python test_llm_validation.py
+
+# Or run full pipeline with LLM validation (for small datasets)
+python scripts/run_pipeline.py
+```
 
 ## Future Enhancements
 

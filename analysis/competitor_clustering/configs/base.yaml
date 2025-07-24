@@ -1,10 +1,10 @@
 # Base configuration for competitor clustering pipeline
 
 # Model settings
-model_name: "sentence-transformers/all-mpnet-base-v2"
+model_name: "sentence-transformers/all-MiniLM-L6-v2"
 k: 20
 tau: 0.55
-alpha: 0.6
+alpha: 0.7
 seed: 42
 
 # Data paths
