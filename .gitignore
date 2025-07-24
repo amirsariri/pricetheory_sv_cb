@@ -43,6 +43,15 @@ data/raw/*
 data/processed/orgs_2012_2018_survived.csv
 data/processed/dta/orgs_2012_2019_survived.dta
 
+# Competitor clustering outputs
+analysis/competitor_clustering/outputs/
+data/processed/competitor_clustering/*.npz
+data/processed/competitor_clustering/*.npy
+data/processed/competitor_clustering_test/*.npz
+data/processed/competitor_clustering_test/*.npy
+data/processed/competitor_clustering_small_test/
+outputs/
+
 # OS
 .DS_Store
 .DS_Store?
